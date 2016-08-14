@@ -6,8 +6,12 @@ import (
 )
 
 func main() {
+	var connectionContainer *connectionContainer
+
 	if len(os.Args) == 1 {
-		go runServer()
+		connectionContainer = newConnectionContainer()
+		connectionContainer.run()
+		go runServer(connectionContainer)
 	} else if len(os.Args) == 2 {
 		url := os.Args[1]
 		fmt.Println(url)
