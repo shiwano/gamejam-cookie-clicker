@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/sdl_image"
 	"os"
 	"runtime"
 	"time"
 )
 
 const (
-	windowWidth  = 640
-	windowHeight = 480
+	windowWidth     = 640
+	windowHeight    = 480
+	cookieImageName = "./cookie.png"
 )
 
 func main() {
@@ -40,6 +42,20 @@ func gameLoop() error {
 	}
 	defer renderer.Destroy()
 
+	cookieImage, err := img.Load(cookieImageName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load PNG: %s\n", err)
+		return err
+	}
+	defer cookieImage.Free()
+	cookieTexture, err := renderer.CreateTextureFromSurface(cookieImage)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create texture: %s\n", err)
+		return err
+	}
+	defer cookieTexture.Destroy()
+	cookieTextureRect := &sdl.Rect{X: 0, Y: 0, W: 60, H: 55}
+
 	ticker := time.Tick(time.Second / 60)
 
 loop:
@@ -50,20 +66,20 @@ loop:
 			renderer.SetDrawColor(0, 0, 0, 255)
 			renderer.Clear()
 			renderer.SetDrawColor(255, 255, 255, 255)
-			renderer.Present()
 
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				switch t := event.(type) {
 				case *sdl.QuitEvent:
 					break loop
-				case *sdl.MouseMotionEvent:
-					fmt.Println("Move ", t)
 				case *sdl.MouseButtonEvent:
 					if t.State == 0 {
-						fmt.Println("Click")
+						r := &sdl.Rect{X: t.X, Y: t.Y, W: cookieTextureRect.W, H: cookieTextureRect.H}
+						renderer.Copy(cookieTexture, cookieTextureRect, r)
 					}
 				}
 			}
+
+			renderer.Present()
 		}
 	}
 	return nil
