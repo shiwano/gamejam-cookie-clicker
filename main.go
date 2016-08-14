@@ -99,6 +99,14 @@ loop:
 			}
 
 			renderer.Present()
+
+			aliveCookies := cookies[:0]
+			for _, c := range cookies {
+				if !c.IsDead() {
+					aliveCookies = append(aliveCookies, c)
+				}
+			}
+			cookies = aliveCookies
 		}
 	}
 	return nil
