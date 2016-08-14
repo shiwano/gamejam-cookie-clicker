@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/satori/go.uuid"
 	"github.com/shiwano/websocket-conn"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/sdl_image"
@@ -19,10 +20,12 @@ const (
 )
 
 func gameLoop(host bool, serverURL string) error {
+	userID := uuid.NewV4().String()
+
 	sdl.Init(sdl.INIT_EVERYTHING)
 	defer sdl.Quit()
 
-	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+	window, err := sdl.CreateWindow("Game", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		windowWidth, windowHeight, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return err
@@ -67,7 +70,7 @@ func gameLoop(host bool, serverURL string) error {
 	var score int
 	ticker := time.Tick(time.Second / 60)
 
-	c.WriteTextMessage("sync")
+	c.WriteTextMessage(fmt.Sprintf("%v sync", userID))
 
 loop:
 	for {
@@ -75,25 +78,26 @@ loop:
 		case message := <-messageCh:
 			fmt.Println("Server say: " + message)
 			params := strings.Split(message, " ")
+			messageUserID := params[0]
 
-			switch params[0] {
+			switch params[1] {
 			case "cookie":
-				x, _ := strconv.Atoi(params[1])
-				y, _ := strconv.Atoi(params[2])
+				x, _ := strconv.Atoi(params[2])
+				y, _ := strconv.Atoi(params[3])
 				cookies = append(cookies, newCookie(&sdl.Point{X: int32(x), Y: int32(y)}))
 				score++
-				addedAt, _ := strconv.Atoi(params[3])
-				if addedAt-lastCookieAddedAt < 2 {
+				addedAt, _ := strconv.Atoi(params[4])
+				if userID != messageUserID && addedAt-lastCookieAddedAt < 2 {
 					score += 10
 				}
 				lastCookieAddedAt = addedAt
 			case "score":
 				if !host {
-					score, _ = strconv.Atoi(params[1])
+					score, _ = strconv.Atoi(params[2])
 				}
 			case "sync":
 				if host {
-					c.WriteTextMessage(fmt.Sprintf("score %v", score))
+					c.WriteTextMessage(fmt.Sprintf("%v score %v", userID, score))
 				}
 			}
 		case <-ticker:
@@ -113,7 +117,7 @@ loop:
 					break loop
 				case *sdl.MouseButtonEvent:
 					if t.State == 0 {
-						c.WriteTextMessage(fmt.Sprintf("cookie %v %v %v", t.X, t.Y, time.Now().Unix()))
+						c.WriteTextMessage(fmt.Sprintf("%v cookie %v %v %v", userID, t.X, t.Y, time.Now().Unix()))
 					}
 				}
 			}
