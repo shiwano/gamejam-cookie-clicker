@@ -18,7 +18,7 @@ const (
 	cookieImageName = "./cookie.png"
 )
 
-func gameLoop(serverURL string) error {
+func gameLoop(host bool, serverURL string) error {
 	sdl.Init(sdl.INIT_EVERYTHING)
 	defer sdl.Quit()
 
@@ -74,6 +74,7 @@ loop:
 		case message := <-messageCh:
 			fmt.Println("Server say: " + message)
 			params := strings.Split(message, " ")
+
 			switch params[0] {
 			case "cookie":
 				x, _ := strconv.Atoi(params[1])
@@ -81,9 +82,13 @@ loop:
 				cookies = append(cookies, newCookie(&sdl.Point{X: int32(x), Y: int32(y)}))
 				score++
 			case "score":
-				score, _ = strconv.Atoi(params[1])
+				if !host {
+					score, _ = strconv.Atoi(params[1])
+				}
 			case "sync":
-				c.WriteTextMessage(fmt.Sprintf("score %v", score))
+				if host {
+					c.WriteTextMessage(fmt.Sprintf("score %v", score))
+				}
 			}
 		case <-ticker:
 			renderer.SetDrawColor(0, 0, 0, 255)
