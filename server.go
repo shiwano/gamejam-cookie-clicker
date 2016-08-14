@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type connectionContainer struct {
+type serverHub struct {
 	connections     []*conn.Conn
 	receivedMessage chan string
 	sendMessageCh   chan string
@@ -14,8 +14,8 @@ type connectionContainer struct {
 	removeCh        chan *conn.Conn
 }
 
-func newConnectionContainer() *connectionContainer {
-	return &connectionContainer{
+func newServerHub() *serverHub {
+	return &serverHub{
 		connections:     make([]*conn.Conn, 0),
 		receivedMessage: make(chan string, 100),
 		sendMessageCh:   make(chan string, 100),
@@ -24,7 +24,7 @@ func newConnectionContainer() *connectionContainer {
 	}
 }
 
-func (c *connectionContainer) run() {
+func (c *serverHub) run() {
 	for {
 		select {
 		case message := <-c.sendMessageCh:
@@ -45,21 +45,21 @@ func (c *connectionContainer) run() {
 	}
 }
 
-func runServer(container *connectionContainer) {
+func runServer(hub *serverHub) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		c := conn.New()
 		c.TextMessageHandler = func(text string) {
 			fmt.Println("Received: " + text)
-			container.receivedMessage <- text
+			hub.receivedMessage <- text
 		}
 		c.DisconnectHandler = func() {
-			container.removeCh <- c
+			hub.removeCh <- c
 		}
 		if err := c.UpgradeFromHTTP(w, r); err != nil {
 			fmt.Printf("Failed to connect: %v", err)
 			return
 		}
-		container.addCh <- c
+		hub.addCh <- c
 		fmt.Println("Client connected")
 	})
 

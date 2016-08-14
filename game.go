@@ -17,7 +17,7 @@ const (
 	cookieImageName = "./cookie.png"
 )
 
-func gameLoop() error {
+func gameLoop(serverURL string) error {
 	sdl.Init(sdl.INIT_EVERYTHING)
 	defer sdl.Quit()
 

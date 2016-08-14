@@ -6,21 +6,21 @@ import (
 )
 
 func main() {
-	var url string
-	var connectionContainer *connectionContainer
+	var serverURL string
+	var serverHub *serverHub
 
 	if len(os.Args) == 1 {
-		url := "ws://localhost:5000"
-		connectionContainer = newConnectionContainer()
-		connectionContainer.run()
-		go runServer(connectionContainer)
+		serverURL = "ws://localhost:5000"
+		serverHub = newServerHub()
+		serverHub.run()
+		go runServer(serverHub)
 	} else if len(os.Args) == 2 {
-		url = os.Args[1]
+		serverURL = os.Args[1]
 	} else {
 		panic("Invalid args")
 	}
 
-	if err := gameLoop(); err != nil {
+	if err := gameLoop(serverURL); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	} else {
