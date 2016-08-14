@@ -54,8 +54,9 @@ func gameLoop() error {
 		return err
 	}
 	defer cookieTexture.Destroy()
-	cookieTextureRect := &sdl.Rect{X: 0, Y: 0, W: 60, H: 55}
+	cookieImageRect := &sdl.Rect{X: 0, Y: 0, W: 60, H: 55}
 
+	var cookies []*cookie
 	ticker := time.Tick(time.Second / 60)
 
 loop:
@@ -67,14 +68,20 @@ loop:
 			renderer.Clear()
 			renderer.SetDrawColor(255, 255, 255, 255)
 
+			for _, c := range cookies {
+				renderer.Copy(cookieTexture, cookieImageRect, c.rect())
+			}
+
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				switch t := event.(type) {
 				case *sdl.QuitEvent:
 					break loop
 				case *sdl.MouseButtonEvent:
 					if t.State == 0 {
-						r := &sdl.Rect{X: t.X, Y: t.Y, W: cookieTextureRect.W, H: cookieTextureRect.H}
-						renderer.Copy(cookieTexture, cookieTextureRect, r)
+						cookies = append(cookies, &cookie{
+							position:  &sdl.Point{X: t.X, Y: t.Y},
+							imageRect: cookieImageRect,
+						})
 					}
 				}
 			}
