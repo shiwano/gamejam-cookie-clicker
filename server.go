@@ -49,6 +49,7 @@ func runServer(container *connectionContainer) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		c := conn.New()
 		c.TextMessageHandler = func(text string) {
+			fmt.Println("Received: " + text)
 			container.receivedMessage <- text
 		}
 		c.DisconnectHandler = func() {

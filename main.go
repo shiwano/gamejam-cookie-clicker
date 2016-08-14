@@ -6,15 +6,16 @@ import (
 )
 
 func main() {
+	var url string
 	var connectionContainer *connectionContainer
 
 	if len(os.Args) == 1 {
+		url := "ws://localhost:5000"
 		connectionContainer = newConnectionContainer()
 		connectionContainer.run()
 		go runServer(connectionContainer)
 	} else if len(os.Args) == 2 {
-		url := os.Args[1]
-		fmt.Println(url)
+		url = os.Args[1]
 	} else {
 		panic("Invalid args")
 	}
