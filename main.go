@@ -56,7 +56,6 @@ func gameLoop() error {
 		return err
 	}
 	defer cookieTexture.Destroy()
-	cookieImageRect := &sdl.Rect{X: 0, Y: 0, W: 60, H: 55}
 
 	if err := ttf.Init(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize TTF: %s\n", err)
@@ -83,7 +82,7 @@ loop:
 			renderer.SetDrawColor(255, 255, 255, 255)
 
 			for _, c := range cookies {
-				renderer.Copy(cookieTexture, cookieImageRect, c.rect())
+				renderer.Copy(cookieTexture, nil, c.rect())
 			}
 			renderText(font, renderer, "Count: "+strconv.Itoa(score), &sdl.Point{X: 0, Y: 0})
 
@@ -93,10 +92,7 @@ loop:
 					break loop
 				case *sdl.MouseButtonEvent:
 					if t.State == 0 {
-						cookies = append(cookies, &cookie{
-							position:  &sdl.Point{X: t.X, Y: t.Y},
-							imageRect: cookieImageRect,
-						})
+						cookies = append(cookies, newCookie(&sdl.Point{X: t.X, Y: t.Y}))
 						score++
 					}
 				}
