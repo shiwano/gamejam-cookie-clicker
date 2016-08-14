@@ -7,20 +7,18 @@ import (
 )
 
 type serverHub struct {
-	connections     []*conn.Conn
-	receivedMessage chan string
-	sendMessageCh   chan string
-	addCh           chan *conn.Conn
-	removeCh        chan *conn.Conn
+	connections   []*conn.Conn
+	sendMessageCh chan string
+	addCh         chan *conn.Conn
+	removeCh      chan *conn.Conn
 }
 
 func newServerHub() *serverHub {
 	return &serverHub{
-		connections:     make([]*conn.Conn, 0),
-		receivedMessage: make(chan string, 100),
-		sendMessageCh:   make(chan string, 100),
-		addCh:           make(chan *conn.Conn),
-		removeCh:        make(chan *conn.Conn),
+		connections:   make([]*conn.Conn, 0),
+		sendMessageCh: make(chan string, 100),
+		addCh:         make(chan *conn.Conn),
+		removeCh:      make(chan *conn.Conn),
 	}
 }
 
@@ -46,11 +44,14 @@ func (c *serverHub) run() {
 }
 
 func runServer(hub *serverHub) {
+	serverHub := newServerHub()
+	go serverHub.run()
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		c := conn.New()
 		c.TextMessageHandler = func(text string) {
 			fmt.Println("Received: " + text)
-			hub.receivedMessage <- text
+			hub.sendMessageCh <- text
 		}
 		c.DisconnectHandler = func() {
 			hub.removeCh <- c

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/shiwano/websocket-conn"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/sdl_image"
 	"github.com/veandco/go-sdl2/sdl_ttf"
@@ -30,34 +31,36 @@ func gameLoop(serverURL string) error {
 
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create renderer: %s\n", err)
 		return err
 	}
 	defer renderer.Destroy()
 
 	cookieImage, err := img.Load(cookieImageName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load PNG: %s\n", err)
 		return err
 	}
 	defer cookieImage.Free()
 	cookieTexture, err := renderer.CreateTextureFromSurface(cookieImage)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create texture: %s\n", err)
 		return err
 	}
 	defer cookieTexture.Destroy()
 
 	if err := ttf.Init(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to initialize TTF: %s\n", err)
 		return err
 	}
 	font, err := ttf.OpenFont("./font.ttf", 32)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to open font: %s\n", err)
 		return err
 	}
 	defer font.Close()
+
+	receivedMessages := make(chan string, 100)
+	c := conn.New()
+	c.TextMessageHandler = func(m string) { receiveMessages <- m }
+	if _, err := c.Connect(serverURL, nil); err != nil {
+		return err
+	}
 
 	var cookies []*cookie
 	var score int
