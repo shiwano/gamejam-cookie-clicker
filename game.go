@@ -66,17 +66,24 @@ func gameLoop(serverURL string) error {
 	var score int
 	ticker := time.Tick(time.Second / 60)
 
+	c.WriteTextMessage("sync")
+
 loop:
 	for {
 		select {
 		case message := <-messageCh:
 			fmt.Println("Server say: " + message)
 			params := strings.Split(message, " ")
-			if params[0] == "cookie" {
+			switch params[0] {
+			case "cookie":
 				x, _ := strconv.Atoi(params[1])
 				y, _ := strconv.Atoi(params[2])
 				cookies = append(cookies, newCookie(&sdl.Point{X: int32(x), Y: int32(y)}))
 				score++
+			case "score":
+				score, _ = strconv.Atoi(params[1])
+			case "sync":
+				c.WriteTextMessage(fmt.Sprintf("score %v", score))
 			}
 		case <-ticker:
 			renderer.SetDrawColor(0, 0, 0, 255)
