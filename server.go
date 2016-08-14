@@ -17,5 +17,6 @@ func runServer() {
 		}
 		fmt.Println("Client connected")
 	})
+	fmt.Println("Start server")
 	http.ListenAndServe(":5000", nil)
 }
