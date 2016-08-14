@@ -8,6 +8,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl_ttf"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -70,6 +71,13 @@ loop:
 		select {
 		case message := <-messageCh:
 			fmt.Println("Server say: " + message)
+			params := strings.Split(message, " ")
+			if params[0] == "cookie" {
+				x, _ := strconv.Atoi(params[1])
+				y, _ := strconv.Atoi(params[2])
+				cookies = append(cookies, newCookie(&sdl.Point{X: int32(x), Y: int32(y)}))
+				score++
+			}
 		case <-ticker:
 			renderer.SetDrawColor(0, 0, 0, 255)
 			renderer.Clear()
@@ -87,9 +95,7 @@ loop:
 					break loop
 				case *sdl.MouseButtonEvent:
 					if t.State == 0 {
-						cookies = append(cookies, newCookie(&sdl.Point{X: t.X, Y: t.Y}))
-						score++
-						c.WriteTextMessage("Score++")
+						c.WriteTextMessage(fmt.Sprintf("cookie %v %v", t.X, t.Y))
 					}
 				}
 			}

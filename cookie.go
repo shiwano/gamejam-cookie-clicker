@@ -14,8 +14,8 @@ func newCookie(point *sdl.Point) *cookie {
 	return &cookie{
 		createdAt: time.Now(),
 		position: &sdl.Point{
-			X: point.X - 30 + random(-30, 30),
-			Y: point.Y - 27 + random(-30, 30),
+			X: point.X - 30,
+			Y: point.Y - 27,
 		},
 	}
 }
