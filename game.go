@@ -66,6 +66,7 @@ func gameLoop(host bool, serverURL string) error {
 	}
 
 	var cookies []*cookie
+	var lastCookieUserID string
 	var lastCookieAddedAt int
 	var score int
 	ticker := time.Tick(time.Second / 60)
@@ -87,9 +88,10 @@ loop:
 				cookies = append(cookies, newCookie(&sdl.Point{X: int32(x), Y: int32(y)}))
 				score++
 				addedAt, _ := strconv.Atoi(params[4])
-				if userID != messageUserID && addedAt-lastCookieAddedAt < 2 {
+				if lastCookieUserID != messageUserID && addedAt-lastCookieAddedAt < 2 {
 					score += 10
 				}
+				lastCookieUserID = messageUserID
 				lastCookieAddedAt = addedAt
 			case "score":
 				if !host {
