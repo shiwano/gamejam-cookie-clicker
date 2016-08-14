@@ -63,6 +63,7 @@ func gameLoop(host bool, serverURL string) error {
 	}
 
 	var cookies []*cookie
+	var lastCookieAddedAt int
 	var score int
 	ticker := time.Tick(time.Second / 60)
 
@@ -81,6 +82,11 @@ loop:
 				y, _ := strconv.Atoi(params[2])
 				cookies = append(cookies, newCookie(&sdl.Point{X: int32(x), Y: int32(y)}))
 				score++
+				addedAt, _ := strconv.Atoi(params[3])
+				if addedAt-lastCookieAddedAt < 2 {
+					score += 10
+				}
+				lastCookieAddedAt = addedAt
 			case "score":
 				if !host {
 					score, _ = strconv.Atoi(params[1])
@@ -107,7 +113,7 @@ loop:
 					break loop
 				case *sdl.MouseButtonEvent:
 					if t.State == 0 {
-						c.WriteTextMessage(fmt.Sprintf("cookie %v %v", t.X, t.Y))
+						c.WriteTextMessage(fmt.Sprintf("cookie %v %v %v", t.X, t.Y, time.Now().Unix()))
 					}
 				}
 			}
