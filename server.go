@@ -43,14 +43,14 @@ func (c *serverHub) run() {
 	}
 }
 
-func runServer(hub *serverHub) {
-	serverHub := newServerHub()
-	go serverHub.run()
+func runServer() {
+	hub := newServerHub()
+	go hub.run()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		c := conn.New()
 		c.TextMessageHandler = func(text string) {
-			fmt.Println("Received: " + text)
+			fmt.Println("Client say: " + text)
 			hub.sendMessageCh <- text
 		}
 		c.DisconnectHandler = func() {

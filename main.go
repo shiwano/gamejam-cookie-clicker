@@ -10,7 +10,7 @@ func main() {
 
 	if len(os.Args) == 1 {
 		serverURL = "ws://localhost:5000"
-		go runServer(serverHub)
+		go runServer()
 	} else if len(os.Args) == 2 {
 		serverURL = os.Args[1]
 	} else {

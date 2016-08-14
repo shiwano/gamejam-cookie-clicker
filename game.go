@@ -6,7 +6,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/sdl_image"
 	"github.com/veandco/go-sdl2/sdl_ttf"
-	"os"
 	"runtime"
 	"strconv"
 	"time"
@@ -55,9 +54,9 @@ func gameLoop(serverURL string) error {
 	}
 	defer font.Close()
 
-	receivedMessages := make(chan string, 100)
+	messageCh := make(chan string, 100)
 	c := conn.New()
-	c.TextMessageHandler = func(m string) { receiveMessages <- m }
+	c.TextMessageHandler = func(m string) { messageCh <- m }
 	if _, err := c.Connect(serverURL, nil); err != nil {
 		return err
 	}
@@ -69,7 +68,8 @@ func gameLoop(serverURL string) error {
 loop:
 	for {
 		select {
-		default:
+		case message := <-messageCh:
+			fmt.Println("Server say: " + message)
 		case <-ticker:
 			renderer.SetDrawColor(0, 0, 0, 255)
 			renderer.Clear()
@@ -79,6 +79,7 @@ loop:
 				renderer.Copy(cookieTexture, nil, c.rect())
 			}
 			renderText(font, renderer, "Count: "+strconv.Itoa(score), &sdl.Point{X: 0, Y: 0})
+			renderer.Present()
 
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				switch t := event.(type) {
@@ -88,11 +89,10 @@ loop:
 					if t.State == 0 {
 						cookies = append(cookies, newCookie(&sdl.Point{X: t.X, Y: t.Y}))
 						score++
+						c.WriteTextMessage("Score++")
 					}
 				}
 			}
-
-			renderer.Present()
 
 			aliveCookies := cookies[:0]
 			for _, c := range cookies {
