@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
-
 	"github.com/veandco/go-sdl2/sdl_image"
 	"github.com/veandco/go-sdl2/sdl_ttf"
 	"os"
 	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -85,7 +85,7 @@ loop:
 			for _, c := range cookies {
 				renderer.Copy(cookieTexture, cookieImageRect, c.rect())
 			}
-			renderText(font, renderer, "Hello", &sdl.Point{X: 0, Y: 0})
+			renderText(font, renderer, "Count: "+strconv.Itoa(score), &sdl.Point{X: 0, Y: 0})
 
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				switch t := event.(type) {
