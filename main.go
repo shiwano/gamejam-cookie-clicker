@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
+
 	"github.com/veandco/go-sdl2/sdl_image"
+	"github.com/veandco/go-sdl2/sdl_ttf"
 	"os"
 	"runtime"
 	"time"
@@ -56,7 +58,19 @@ func gameLoop() error {
 	defer cookieTexture.Destroy()
 	cookieImageRect := &sdl.Rect{X: 0, Y: 0, W: 60, H: 55}
 
+	if err := ttf.Init(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to initialize TTF: %s\n", err)
+		return err
+	}
+	font, err := ttf.OpenFont("./font.ttf", 32)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to open font: %s\n", err)
+		return err
+	}
+	defer font.Close()
+
 	var cookies []*cookie
+	var score int
 	ticker := time.Tick(time.Second / 60)
 
 loop:
@@ -71,6 +85,7 @@ loop:
 			for _, c := range cookies {
 				renderer.Copy(cookieTexture, cookieImageRect, c.rect())
 			}
+			renderText(font, renderer, "Hello", &sdl.Point{X: 0, Y: 0})
 
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				switch t := event.(type) {
@@ -82,6 +97,7 @@ loop:
 							position:  &sdl.Point{X: t.X, Y: t.Y},
 							imageRect: cookieImageRect,
 						})
+						score++
 					}
 				}
 			}
@@ -89,6 +105,21 @@ loop:
 			renderer.Present()
 		}
 	}
+	return nil
+}
+
+func renderText(font *ttf.Font, renderer *sdl.Renderer, text string, point *sdl.Point) error {
+	solid, err := font.RenderUTF8_Shaded(text, sdl.Color{R: 255, G: 255, B: 255, A: 255}, sdl.Color{R: 0, G: 0, B: 0, A: 0})
+	if err != nil {
+		return err
+	}
+	defer solid.Free()
+	solidTexture, err := renderer.CreateTextureFromSurface(solid)
+	if err != nil {
+		return err
+	}
+	defer solidTexture.Destroy()
+	renderer.Copy(solidTexture, nil, &sdl.Rect{X: point.X, Y: point.Y, W: solid.W, H: solid.H})
 	return nil
 }
 
